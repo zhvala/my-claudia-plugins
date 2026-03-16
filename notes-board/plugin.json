@@ -1,0 +1,18 @@
+{
+  "id": "com.claudia.notes-board",
+  "name": "Notes Board",
+  "version": "1.0.0",
+  "description": "Visual card board for notes created with the Note Keeper plugin",
+  "permissions": [],
+  "engines": { "claudia": ">=0.1.0" },
+  "main": "dist/index.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "/board",
+        "title": "Open Notes Board Panel",
+        "category": "Notes"
+      }
+    ]
+  }
+}

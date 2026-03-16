@@ -1,0 +1,90 @@
+{
+  "id": "com.claudia.note-keeper",
+  "name": "Note Keeper",
+  "version": "1.0.0",
+  "description": "Persistent note-taking plugin. Tests storage API with CRUD operations.",
+  "main": "dist/index.js",
+  "permissions": ["storage"],
+  "activationEvents": ["onStartup"],
+  "engines": {
+    "claudia": ">=0.1.0"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "note",
+        "title": "Add a quick note"
+      },
+      {
+        "command": "note:list",
+        "title": "List all saved notes"
+      },
+      {
+        "command": "note:clear",
+        "title": "Clear all notes"
+      }
+    ],
+    "tools": [
+      {
+        "id": "save_note",
+        "name": "save_note",
+        "description": "Save a note with a title and content. Notes persist across sessions and restarts.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "Short title for the note"
+            },
+            "content": {
+              "type": "string",
+              "description": "The note content"
+            },
+            "tags": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Optional tags for categorization"
+            }
+          },
+          "required": ["title", "content"]
+        },
+        "scope": ["agent-assistant", "main-session"]
+      },
+      {
+        "id": "search_notes",
+        "name": "search_notes",
+        "description": "Search through saved notes by keyword or tag.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Search keyword to match against title and content"
+            },
+            "tag": {
+              "type": "string",
+              "description": "Filter by tag"
+            }
+          }
+        },
+        "scope": ["agent-assistant", "main-session"]
+      },
+      {
+        "id": "delete_note",
+        "name": "delete_note",
+        "description": "Delete a note by its ID.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "noteId": {
+              "type": "string",
+              "description": "The ID of the note to delete"
+            }
+          },
+          "required": ["noteId"]
+        },
+        "scope": ["agent-assistant", "main-session"]
+      }
+    ]
+  }
+}

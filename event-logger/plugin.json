@@ -1,0 +1,63 @@
+{
+  "id": "com.claudia.event-logger",
+  "name": "Event Logger",
+  "version": "1.0.0",
+  "description": "Subscribes to system events and logs them. Tests event system and storage.",
+  "main": "dist/index.js",
+  "permissions": ["storage", "session.read"],
+  "activationEvents": ["onStartup"],
+  "engines": {
+    "claudia": ">=0.1.0"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "events",
+        "title": "Show recent events"
+      },
+      {
+        "command": "events:clear",
+        "title": "Clear event log"
+      },
+      {
+        "command": "events:stats",
+        "title": "Show event statistics"
+      }
+    ],
+    "tools": [
+      {
+        "id": "query_events",
+        "name": "query_events",
+        "description": "Query the event log. Can filter by event type, time range, or search in event data.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "eventType": {
+              "type": "string",
+              "description": "Filter by event type (e.g., 'run.started', 'session.created')"
+            },
+            "limit": {
+              "type": "number",
+              "description": "Maximum number of events to return (default: 20)"
+            },
+            "search": {
+              "type": "string",
+              "description": "Search keyword in event data"
+            }
+          }
+        },
+        "scope": ["agent-assistant", "main-session"]
+      },
+      {
+        "id": "get_event_stats",
+        "name": "get_event_stats",
+        "description": "Get statistics about recorded events: counts by type, total count, time range.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        },
+        "scope": ["agent-assistant", "main-session"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "com.example.pomodoro",
+  "name": "Pomodoro Timer",
+  "version": "1.0.0",
+  "description": "Focus timer using the Pomodoro Technique — 25 min work, 5 min break",
+  "author": { "name": "Example Developer", "url": "https://example.com" },
+  "permissions": [],
+  "engines": { "claudia": ">=0.1.0" },
+  "main": "dist/index.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "/pomodoro",
+        "title": "Open Pomodoro Timer",
+        "category": "Productivity"
+      }
+    ],
+    "panels": [
+      {
+        "id": "pomodoro",
+        "label": "Pomodoro",
+        "location": "bottom",
+        "icon": "Timer",
+        "frontend": "ui/index.html",
+        "order": 50
+      }
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "com.claudia.echo",
+  "name": "Echo",
+  "version": "1.0.0",
+  "description": "Simplest plugin for testing. Echoes input back via tool and command.",
+  "main": "dist/index.js",
+  "permissions": ["storage"],
+  "activationEvents": ["onStartup"],
+  "engines": {
+    "claudia": ">=0.1.0"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "echo",
+        "title": "Echo back a message"
+      },
+      {
+        "command": "echo:stats",
+        "title": "Show echo usage stats"
+      }
+    ],
+    "tools": [
+      {
+        "id": "echo_tool",
+        "name": "echo_tool",
+        "description": "Echoes back the input text, optionally transformed (uppercase, reverse, repeat). Use this tool to test plugin tool integration.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "The text to echo back"
+            },
+            "transform": {
+              "type": "string",
+              "enum": ["none", "uppercase", "lowercase", "reverse"],
+              "description": "Optional transformation to apply"
+            }
+          },
+          "required": ["text"]
+        },
+        "scope": ["agent-assistant", "main-session"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "id": "com.claudia.timer",
+  "name": "Timer & Reminder",
+  "version": "1.0.0",
+  "description": "Set timers and reminders from chat. AI can create timers and check their status.",
+  "main": "dist/index.js",
+  "permissions": ["storage", "notification"],
+  "activationEvents": ["onStartup"],
+  "engines": {
+    "claudia": ">=0.1.0"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "timer",
+        "title": "Set a timer"
+      },
+      {
+        "command": "timer:list",
+        "title": "List active timers"
+      },
+      {
+        "command": "timer:clear",
+        "title": "Clear all timers"
+      }
+    ],
+    "tools": [
+      {
+        "id": "create_timer",
+        "name": "create_timer",
+        "description": "Create a countdown timer that will notify when complete. Use this when the user asks to set a reminder or timer.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "seconds": {
+              "type": "number",
+              "description": "Duration in seconds"
+            },
+            "label": {
+              "type": "string",
+              "description": "Optional label for the timer"
+            }
+          },
+          "required": ["seconds"]
+        },
+        "scope": ["agent-assistant", "main-session"]
+      },
+      {
+        "id": "check_timer",
+        "name": "check_timer",
+        "description": "Check the status of a timer by its ID. Returns remaining time and whether it has expired.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "timerId": {
+              "type": "string",
+              "description": "The timer ID to check"
+            }
+          },
+          "required": ["timerId"]
+        },
+        "scope": ["agent-assistant", "main-session"]
+      },
+      {
+        "id": "list_timers",
+        "name": "list_timers",
+        "description": "List all active timers with their remaining time.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        },
+        "scope": ["agent-assistant", "main-session"]
+      }
+    ]
+  }
+}

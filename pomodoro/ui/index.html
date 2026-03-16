@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pomodoro Timer</title>
+
+<!-- Claudia design tokens — provides --background, --foreground, --primary, etc. -->
+<link rel="stylesheet" href="/api/plugins/styles/claudia-ui.css" />
+<!-- Claudia SDK — theme sync + host communication -->
+<script src="/api/plugins/styles/plugin-sdk.js"></script>
+
+<style>
+  html, body {
+    height: 100%;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  .container {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  /* ── Ring ── */
+  .ring-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 160px;
+    height: 160px;
+  }
+
+  .ring-svg {
+    transform: rotate(-90deg);
+    width: 160px;
+    height: 160px;
+  }
+
+  .ring-track {
+    fill: none;
+    stroke: hsl(var(--border));
+    stroke-width: 8;
+  }
+
+  .ring-progress {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear, stroke 0.4s;
+  }
+
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .time-display {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .phase-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ── Info panel ── */
+  .info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .stat-card {
+    flex: 1;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius, 0.75rem);
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex;
+    gap: 8px;
+  }
+
+  button {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    color: white;
+  }
+
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-primary {
+    background: hsl(0 84% 60%);   /* work = red */
+    flex: 2;
+  }
+
+  .btn-primary.break { background: hsl(142 60% 45%); }  /* break = green */
+
+  .btn-secondary {
+    background: hsl(var(--secondary));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+  }
+
+  /* ── Log ── */
+  .log-section { display: flex; flex-direction: column; gap: 6px; }
+
+  .log-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .log-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+
+  .log-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .log-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .log-dot.work  { background: hsl(0 84% 60%); }
+  .log-dot.break { background: hsl(142 60% 45%); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Ring timer -->
+  <div class="ring-wrap">
+    <svg class="ring-svg" viewBox="0 0 160 160">
+      <circle class="ring-track" cx="80" cy="80" r="68"/>
+      <circle class="ring-progress" id="ring" cx="80" cy="80" r="68"
+        stroke-dasharray="427.26" stroke-dashoffset="0"/>
+    </svg>
+    <div class="ring-center">
+      <div class="time-display" id="timeDisplay">25:00</div>
+      <div class="phase-badge" id="phaseLabel">Work</div>
+    </div>
+  </div>
+
+  <!-- Controls + stats -->
+  <div class="info">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value" id="pomodoroCount">0</div>
+        <div class="stat-label">Pomodoros</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="cycleCount">0</div>
+        <div class="stat-label">Cycles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="focusTime">0m</div>
+        <div class="stat-label">Focus</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-primary" id="startBtn" onclick="toggle()">Start</button>
+      <button class="btn-secondary" onclick="reset()">Reset</button>
+      <button class="btn-secondary" onclick="skip()">Skip</button>
+    </div>
+
+    <div class="log-section">
+      <div class="log-title">Recent</div>
+      <ul class="log-list" id="logList">
+        <li class="log-item" style="color:hsl(var(--muted-foreground));font-size:12px">No sessions yet</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Init Claudia SDK theme sync ─────────────────────────────────────────────
+ClaudiaSDK.ready();
+
+// ── Timer logic ─────────────────────────────────────────────────────────────
+const PHASES = [
+  { name: 'Work',        duration: 25 * 60, type: 'work'  },
+  { name: 'Short Break', duration:  5 * 60, type: 'break' },
+  { name: 'Work',        duration: 25 * 60, type: 'work'  },
+  { name: 'Short Break', duration:  5 * 60, type: 'break' },
+  { name: 'Work',        duration: 25 * 60, type: 'work'  },
+  { name: 'Short Break', duration:  5 * 60, type: 'break' },
+  { name: 'Work',        duration: 25 * 60, type: 'work'  },
+  { name: 'Long Break',  duration: 15 * 60, type: 'break' },
+];
+
+const CIRCUMFERENCE = 2 * Math.PI * 68; // 427.26
+
+let phaseIndex = 0;
+let timeLeft = PHASES[0].duration;
+let running = false;
+let intervalId = null;
+let pomodoroCount = 0;
+let cycleCount = 0;
+let totalFocusSecs = 0;
+const log = [];
+
+const ring         = document.getElementById('ring');
+const timeDisplay  = document.getElementById('timeDisplay');
+const phaseLabel   = document.getElementById('phaseLabel');
+const startBtn     = document.getElementById('startBtn');
+const pomodoroEl   = document.getElementById('pomodoroCount');
+const cycleEl      = document.getElementById('cycleCount');
+const focusEl      = document.getElementById('focusTime');
+const logList      = document.getElementById('logList');
+
+function currentPhase() { return PHASES[phaseIndex]; }
+
+function updateRing() {
+  const phase = currentPhase();
+  const progress = timeLeft / phase.duration;
+  const offset = CIRCUMFERENCE * (1 - progress);
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = phase.type === 'work' ? 'hsl(0 84% 60%)' : 'hsl(142 60% 45%)';
+}
+
+function updateDisplay() {
+  const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+  const s = String(timeLeft % 60).padStart(2, '0');
+  timeDisplay.textContent = `${m}:${s}`;
+  phaseLabel.textContent = currentPhase().name;
+  startBtn.textContent = running ? 'Pause' : 'Start';
+  startBtn.className = 'btn-primary' + (currentPhase().type === 'break' ? ' break' : '');
+  pomodoroEl.textContent = pomodoroCount;
+  cycleEl.textContent = cycleCount;
+  focusEl.textContent = totalFocusSecs < 3600
+    ? Math.floor(totalFocusSecs / 60) + 'm'
+    : (totalFocusSecs / 3600).toFixed(1) + 'h';
+  updateRing();
+}
+
+function addLog(phase) {
+  const now = new Date();
+  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  log.unshift({ phase, time });
+  if (log.length > 5) log.pop();
+  renderLog();
+}
+
+function renderLog() {
+  if (log.length === 0) return;
+  logList.innerHTML = log.map(e => `
+    <li class="log-item">
+      <span class="log-dot ${e.phase.type}"></span>
+      <span>${e.phase.name} completed</span>
+      <span style="margin-left:auto">${e.time}</span>
+    </li>
+  `).join('');
+}
+
+function advancePhase() {
+  addLog(currentPhase());
+  if (currentPhase().type === 'work') {
+    pomodoroCount++;
+    totalFocusSecs += currentPhase().duration;
+  }
+  phaseIndex = (phaseIndex + 1) % PHASES.length;
+  if (phaseIndex === 0) cycleCount++;
+  timeLeft = currentPhase().duration;
+  updateDisplay();
+}
+
+function tick() {
+  if (timeLeft <= 0) {
+    clearInterval(intervalId);
+    running = false;
+    advancePhase();
+    ClaudiaSDK.showNotification(`${PHASES[(phaseIndex - 1 + PHASES.length) % PHASES.length].name} complete!`);
+    setTimeout(() => { running = true; intervalId = setInterval(tick, 1000); }, 1500);
+    return;
+  }
+  timeLeft--;
+  updateDisplay();
+}
+
+function toggle() {
+  running = !running;
+  if (running) {
+    intervalId = setInterval(tick, 1000);
+  } else {
+    clearInterval(intervalId);
+  }
+  updateDisplay();
+}
+
+function reset() {
+  clearInterval(intervalId);
+  running = false;
+  timeLeft = currentPhase().duration;
+  updateDisplay();
+}
+
+function skip() {
+  clearInterval(intervalId);
+  running = false;
+  advancePhase();
+}
+
+// Init
+updateDisplay();
+</script>
+</body>
+</html>

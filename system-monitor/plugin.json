@@ -1,0 +1,18 @@
+{
+  "id": "com.claudia.system-monitor",
+  "name": "System Monitor",
+  "version": "1.0.0",
+  "description": "Real-time system resource monitor — CPU, memory, and uptime",
+  "permissions": [],
+  "engines": { "claudia": ">=0.1.0" },
+  "main": "dist/index.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "/sysmon",
+        "title": "Open System Monitor Panel",
+        "category": "System"
+      }
+    ]
+  }
+}

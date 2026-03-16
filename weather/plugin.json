@@ -1,0 +1,88 @@
+{
+  "id": "com.claudia.weather-mock",
+  "name": "Weather (Mock)",
+  "version": "1.0.0",
+  "description": "Mock weather service plugin. Tests complex tool parameters, multiple tools, and inter-plugin communication.",
+  "main": "dist/index.js",
+  "permissions": ["storage"],
+  "activationEvents": ["onStartup"],
+  "engines": {
+    "claudia": ">=0.1.0"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "weather",
+        "title": "Get weather for a city"
+      }
+    ],
+    "tools": [
+      {
+        "id": "get_weather",
+        "name": "get_weather",
+        "description": "Get current weather conditions for a city. Returns temperature, humidity, wind speed, and conditions. This is mock data for testing purposes.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "City name (e.g., 'Beijing', 'Tokyo', 'New York')"
+            },
+            "units": {
+              "type": "string",
+              "enum": ["celsius", "fahrenheit"],
+              "description": "Temperature units (default: celsius)"
+            }
+          },
+          "required": ["city"]
+        },
+        "scope": ["agent-assistant", "main-session"]
+      },
+      {
+        "id": "get_forecast",
+        "name": "get_forecast",
+        "description": "Get a 3-day weather forecast for a city. Returns daily high/low temperatures and conditions. Mock data for testing.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "City name"
+            },
+            "days": {
+              "type": "number",
+              "description": "Number of forecast days (1-7, default: 3)"
+            }
+          },
+          "required": ["city"]
+        },
+        "scope": ["agent-assistant", "main-session"]
+      },
+      {
+        "id": "set_weather_alert",
+        "name": "set_weather_alert",
+        "description": "Set a weather alert for a city when temperature goes above or below a threshold. Tests storage persistence.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "City name to monitor"
+            },
+            "condition": {
+              "type": "string",
+              "enum": ["above", "below"],
+              "description": "Trigger when temperature is above or below threshold"
+            },
+            "threshold": {
+              "type": "number",
+              "description": "Temperature threshold in celsius"
+            }
+          },
+          "required": ["city", "condition", "threshold"]
+        },
+        "scope": ["agent-assistant", "main-session"]
+      }
+    ]
+  }
+}
